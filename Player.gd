@@ -27,5 +27,5 @@ func _physics_process(delta: float) -> void:
 	position += direction * speed * delta
 	
 	# 画面外制限
-	var view_size = get_viewport_rect().size
-	position = position.clamp(Vector2.ZERO, view_size)
+	var game_size = Global.get_game_size()
+	position = position.clamp(Vector2.ZERO, game_size)

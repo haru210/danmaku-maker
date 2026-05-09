@@ -44,7 +44,8 @@
   "metadata": { "project_name": "String", "version": "1.0" },
   "settings": {
     "player": { "texture": "path", "speed": float, "collision_radius": float, "initial_position": [x, y] },
-    "boss": { "texture": "path", "collision_radius": float, "initial_position": [x, y] }
+    "boss": { "texture": "path", "collision_radius": float, "initial_position": [x, y] },
+    "screen": { "width": int, "height": int }
   },
   "timeline": [
     { "time": float, "type": "gimmick/pattern", ...イベント詳細 }
