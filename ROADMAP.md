@@ -24,9 +24,11 @@
 - [x] `ConfigManager`: `config.json` をパースし、グローバルに参照可能にする (Global.gdに統合)
 
 ### 2. コアエンジン：弾幕描画システム (Bullet Engine)
+- [x] 画面範囲制限機能：JSON指定の解像度に基づくレターボックス表示と移動制限
+- [x] 基礎実装：単発弾（independent）の生成・移動・画面外自動削除
 - [ ] 大量描画方式の選定（`RenderingServer` vs `MultiMeshInstance2D` vs `Sprite2D`）
 - [ ] Object Pooling の実装
-- [ ] 基本的な弾の移動ロジック（速度、角度）
+- [ ] 基本的な弾の移動ロジック（n-way等）
 
 ---
 

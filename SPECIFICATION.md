@@ -27,6 +27,7 @@
 
 ### 3.3 ギミック・演出 (Visuals & Gimmicks)
 - **動的表示:** 指定された画像を任意の座標・スケールで表示。
+- **画面範囲制限:** JSON指定の解像度でプレイ領域を制限し、領域外を黒塗りでマスク。
 - **アニメーション:** `SceneTreeTween` を用いたフェード、移動、回転等の演出。
 - **当たり判定:** JSONのサイズ定義に基づいた動的な `Area2D` / `CollisionShape2D` 構成。
 
@@ -43,8 +44,8 @@
 {
   "metadata": { "project_name": "String", "version": "1.0" },
   "settings": {
-    "player": { "texture": "path", "speed": float, "collision_radius": float, "initial_position": [x, y] },
-    "boss": { "texture": "path", "collision_radius": float, "initial_position": [x, y] },
+    "player": { "texture": "path", "speed": float, "collision_radius": float, "initial_position": [x, y], "scale": [x, y] },
+    "boss": { "texture": "path", "collision_radius": float, "initial_position": [x, y], "scale": [x, y] },
     "screen": { "width": int, "height": int }
   },
   "timeline": [
@@ -65,10 +66,19 @@
 - `fade_in`: 秒数 (オプション)
 - `scale`: `[x, y]` (オプション)
 
-### 4.3 Patternイベント (弾幕生成)
+### 4.3 Independentイベント (単発弾生成)
+- `type`: `"independent"`
+- `params`:
+    - `texture`: 使用するテクスチャのキー（相対パス指定可能、例: `"../Assets/Bullets/bullet.svg"`）
+    - `position`: 発射座標 `[x, y]`
+    - `speed`: 移動速度 (pixel/sec)
+    - `angle`: 発射角度 (度、0=右, 90=下)
+    - `scale`: 描画スケール `[x, y]` (オプション)
+
+### 4.4 Patternイベント (弾幕パターン生成)
 - `type`: `"pattern"`
-- `template`: `"n-way"`, `"random"`, `"aim"`, `"linear"`
-- `params`: 各テンプレートに応じた引数
+- `template`: 今後実装予定（`n-way`, `circle` 等）
+- `params`: 各テンプレートに応じたパラメータ
 
 ## 5. 今後の拡張性
 - 複数のJSONファイルを選択できるセレクターUI。

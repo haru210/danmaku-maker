@@ -110,8 +110,14 @@ func setup_game_engine() -> void:
 	timeline_player.name = "TimelinePlayer"
 	game_container.add_child(timeline_player)
 	
-	# タイムラインのイベントをギミックマネージャーに接続
+	# 5. 弾マネージャーの作成
+	var bullet_manager = load("res://BulletManager.gd").new()
+	bullet_manager.name = "BulletManager"
+	game_container.add_child(bullet_manager)
+	
+	# タイムラインのイベントを各マネージャーに接続
 	timeline_player.event_triggered.connect(gimmick_manager.handle_event)
+	timeline_player.event_triggered.connect(bullet_manager.handle_event)
 	
 	# タイムライン開始
 	if Global.config_data.has("timeline"):
