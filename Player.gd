@@ -52,6 +52,11 @@ func _draw() -> void:
 
 func _on_area_entered(area: Area2D) -> void:
 	print("Player collided with: ", area.name)
+	take_damage()
+
+func take_damage() -> void:
+	# とりあえずログ出力のみ。将来的にHP減少や無敵時間などを実装する。
+	print("!!! PLAYER HIT !!!")
 
 func _physics_process(delta: float) -> void:
 	# 入力による移動

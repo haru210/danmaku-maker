@@ -29,7 +29,10 @@
 - **動的表示:** 指定された画像を任意の座標・スケールで表示。
 - **画面範囲制限:** JSON指定の解像度でプレイ領域を制限し、領域外を黒塗りでマスク。
 - **アニメーション:** `SceneTreeTween` を用いたフェード、移動、回転等の演出。
-- **当たり判定:** JSONのサイズ定義に基づいた動的な `Area2D` / `CollisionShape2D` 構成。
+- **当たり判定:** 
+    - JSONの `collision_radius` に基づく円形当たり判定 (`Area2D` + `CircleShape2D`)。
+    - 自機 (Layer 1, Mask 2|4), ボス (Layer 2, Mask 1|8) の物理レイヤー構成。
+    - 視認用デバッグ描画（`_draw` による円フレーム表示）。
 
 ### 3.4 開発支援 (Development Support)
 - **ホットリロード:** 実行中に外部ファイルが変更された際の自動再読み込み。
@@ -69,16 +72,29 @@
 ### 4.3 Independentイベント (単発弾生成)
 - `type`: `"independent"`
 - `params`:
-    - `texture`: 使用するテクスチャのキー（相対パス指定可能、例: `"../Assets/Bullets/bullet.svg"`）
+    - `texture`: 使用するテクスチャのキー
     - `position`: 発射座標 `[x, y]`
     - `speed`: 移動速度 (pixel/sec)
-    - `angle`: 発射角度 (度、0=右, 90=下)
+    - `direction_type`: 基準となる角度の決定方式
+        - `"fixed"`: `angle` で指定した固定角 (デフォルト)
+        - `"aim"`: 自機を狙う角度
+    - `angle`: 発射角度 (度、0=右, 90=下)。`direction_type` が `"fixed"` の時に使用。
+    - `aim_offset`: `"aim"` の際の固定角度オフセット (度)。
+    - `random_range`: 基準角度からのランダムな振れ幅 (度)。
+        - 基準角度を `base` とすると、`base ± (random_range / 2)` の範囲でランダムに決定されます。
+        - 360 を指定すると全方位ランダムになります。
+
     - `scale`: 描画スケール `[x, y]` (オプション)
+    - `collision_radius`: 当たり判定半径 (オプション)
 
 ### 4.4 Patternイベント (弾幕パターン生成)
 - `type`: `"pattern"`
-- `template`: 今後実装予定（`n-way`, `circle` 等）
-- `params`: 各テンプレートに応じたパラメータ
+- `template`: `"n-way"`, `"circle"` 等
+- `params`:
+    - `direction_type`: `"fixed"`, `"aim"`, `"random"` (Independentと同様)
+    - `angle`: 基本となる発射角度
+    - `aim_offset`: `"aim"` の際の角度オフセット
+    - その他テンプレート固有のパラメータ (今後追加)
 
 ## 5. 今後の拡張性
 - 複数のJSONファイルを選択できるセレクターUI。
