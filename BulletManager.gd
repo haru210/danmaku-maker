@@ -68,16 +68,64 @@ func _process(delta: float) -> void:
 
 func handle_event(event: Dictionary) -> void:
 	var type = event.get("type", "")
+	var params = event.get("params", {})
 	
 	match type:
 		"independent":
-			# 単発の弾を生成
-			spawn_bullet(event.get("params", {}))
+			spawn_bullet(params)
 		"pattern":
-			# パターン（今後実装予定）
-			pass
+			var template = event.get("template", "")
+			match template:
+				"n-way":
+					spawn_nway(params)
+				"bulk":
+					spawn_bulk(params)
+				"circle":
+					# 今後実装
+					pass
 
 func spawn_bullet(params: Dictionary) -> void:
+	var pos_arr = params.get("position", [0, 0])
+	var pos = Vector2(pos_arr[0], pos_arr[1])
+	var angle = calculate_angle(params, pos)
+	_spawn_single_bullet(params, pos, angle)
+
+func spawn_bulk(params: Dictionary) -> void:
+	var count = int(params.get("count", 1))
+	var pos_arr = params.get("position", [0, 0])
+	var pos = Vector2(pos_arr[0], pos_arr[1])
+	
+	for i in range(count):
+		# 各弾ごとに角度を再計算（random_rangeが適用される）
+		var angle = calculate_angle(params, pos)
+		_spawn_single_bullet(params, pos, angle)
+
+func spawn_nway(params: Dictionary) -> void:
+	var count = int(params.get("count", 3))
+	var spread = float(params.get("spread", 60.0))
+	var pos_arr = params.get("position", [0, 0])
+	var pos = Vector2(pos_arr[0], pos_arr[1])
+	
+	# 中心軸の角度を計算
+	var center_angle = calculate_base_angle(params, pos)
+	
+	var start_angle = center_angle - spread / 2.0
+	var step = 0.0
+	if count > 1:
+		step = spread / (count - 1.0)
+	elif count == 1:
+		start_angle = center_angle
+	
+	for i in range(count):
+		var angle = start_angle + i * step
+		# 個別のランダム振れ幅を適用
+		var rand_range = params.get("random_range", 0.0)
+		if rand_range > 0:
+			angle += randf_range(-rand_range / 2.0, rand_range / 2.0)
+		
+		_spawn_single_bullet(params, pos, angle)
+
+func _spawn_single_bullet(params: Dictionary, pos: Vector2, angle_deg: float) -> void:
 	var tex_key = params.get("texture", "")
 	if not Global.textures.has(tex_key):
 		printerr("Bullet Error: Texture not found: ", tex_key)
@@ -86,21 +134,11 @@ func spawn_bullet(params: Dictionary) -> void:
 	var sprite = Sprite2D.new()
 	sprite.texture = Global.textures[tex_key]
 	
-	# サイズ（スケール）
 	var sc = params.get("scale", [1.0, 1.0])
 	sprite.scale = Vector2(sc[0], sc[1])
 	
-	# 当たり判定の半径
-	# params から優先的に取得し、なければデフォルト値を使用
 	var radius = params.get("collision_radius", 4.0)
-	
-	# 座標
-	var pos_arr = params.get("position", [0, 0])
-	var pos = Vector2(pos_arr[0], pos_arr[1])
-	
-	# 速度と方向
 	var speed = params.get("speed", 200.0)
-	var angle_deg = calculate_angle(params, pos)
 	var velocity = Vector2.RIGHT.rotated(deg_to_rad(angle_deg)) * speed
 	
 	var bullet = Bullet.new(sprite, pos, velocity, radius)
@@ -108,17 +146,7 @@ func spawn_bullet(params: Dictionary) -> void:
 	active_bullets.append(bullet)
 
 func calculate_angle(params: Dictionary, spawn_pos: Vector2) -> float:
-	var dir_type = params.get("direction_type", "fixed")
-	var base_angle = params.get("angle", 90.0)
-	var final_base = base_angle
-	
-	match dir_type:
-		"aim":
-			if player:
-				var to_player = player.position - spawn_pos
-				final_base = rad_to_deg(to_player.angle()) + params.get("aim_offset", 0.0)
-		"fixed":
-			final_base = base_angle
+	var final_base = calculate_base_angle(params, spawn_pos)
 	
 	# ランダムな振れ幅を適用
 	var rand_range = params.get("random_range", 0.0)
@@ -126,3 +154,18 @@ func calculate_angle(params: Dictionary, spawn_pos: Vector2) -> float:
 		final_base += randf_range(-rand_range / 2.0, rand_range / 2.0)
 	
 	return final_base
+
+func calculate_base_angle(params: Dictionary, spawn_pos: Vector2) -> float:
+	var dir_type = params.get("direction_type", "fixed")
+	var base_angle = params.get("angle", 90.0)
+	
+	match dir_type:
+		"aim":
+			if player:
+				var to_player = player.position - spawn_pos
+				return rad_to_deg(to_player.angle()) + params.get("aim_offset", 0.0)
+			return base_angle
+		"fixed":
+			return base_angle
+		_:
+			return base_angle

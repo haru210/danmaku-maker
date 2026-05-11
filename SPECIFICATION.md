@@ -20,18 +20,19 @@
 - **JSON解析:** `config.json` を読み込み、`Global.gd` にデータを保持。
 - **自動画像ロード:** JSON内の `texture` キーを自動検出しロード。
 
-### 3.2 弾幕エンジン (Bullet Engine) - [設計中]
-- **描画方式:** RenderingServer を採用予定。
-- **オブジェクトプール:** 大量の弾を再利用する仕組み。
-
+### 3.2 弾幕エンジン (Bullet Engine) - [実装中]
+- **描画方式:** Sprite2D (RenderingServer への移行を検討中)。
+- **オブジェクトプール:** 未実装。
+- **弾の移動:** 単発弾 (`independent`)、扇形弾 (`n-way`)、一括生成 (`bulk`) を実装済み。柔軟な方向指定 (`fixed`, `aim`, `random_range`) に対応。
 
 ### 3.3 ギミック・演出 (Visuals & Gimmicks)
 - **動的表示:** 指定された画像を任意の座標・スケールで表示。
 - **画面範囲制限:** JSON指定の解像度でプレイ領域を制限し、領域外を黒塗りでマスク。
 - **アニメーション:** `SceneTreeTween` を用いたフェード、移動、回転等の演出。
 - **当たり判定:** 
-    - JSONの `collision_radius` に基づく円形当たり判定 (`Area2D` + `CircleShape2D`)。
+    - JSONの `collision_radius` に基づく円形当たり判定。
     - 自機 (Layer 1, Mask 2|4), ボス (Layer 2, Mask 1|8) の物理レイヤー構成。
+    - 弾と自機の当たり判定: `BulletManager` による距離ベースの高速判定を実装済み。
     - 視認用デバッグ描画（`_draw` による円フレーム表示）。
 
 ### 3.4 開発支援 (Development Support)
@@ -89,12 +90,17 @@
 
 ### 4.4 Patternイベント (弾幕パターン生成)
 - `type`: `"pattern"`
-- `template`: `"n-way"`, `"circle"` 等
-- `params`:
-    - `direction_type`: `"fixed"`, `"aim"`, `"random"` (Independentと同様)
-    - `angle`: 基本となる発射角度
-    - `aim_offset`: `"aim"` の際の角度オフセット
-    - その他テンプレート固有のパラメータ (今後追加)
+- `template`: `"n-way"`, `"bulk"`, `"circle"` (n-wayで代用可能) 等
+- `params (共通)`:
+    - その他 Independent と同様のパラメータ (`texture`, `speed`, `position`, `scale`, `collision_radius`, `direction_type`, `angle`, `aim_offset`, `random_range`)
+
+- `params (n-way固有)`:
+    - `count`: 弾数 (way数)
+    - `spread`: 扇形の中心角の広がり (度)
+
+- `params (bulk固有)`:
+    - `count`: 同時に生成する弾数。主に `random_range` と組み合わせてランダムな散布に使用。
+
 
 ## 5. 今後の拡張性
 - 複数のJSONファイルを選択できるセレクターUI。
